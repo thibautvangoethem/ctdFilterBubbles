@@ -2,6 +2,10 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltc
+
+import pandas as pd  # for convinience
+import seaborn as sns
+
 def read_data():
     connections = dict()
     opinions = dict()
@@ -52,12 +56,23 @@ if __name__ == '__main__':
 
     to_sort.sort(key = lambda x: x[1])
     pos = dict()
+    keys = []
+
+    x = []
     for item in to_sort:
-        G.add_node(item[0][0])
-        colors.append(item[0][1]["color"])
-        pos[item[0][0]] = [np.random.rand(), item[1]]
-    for key in conn:
+        if np.random.rand() >= 0:
+            G.add_node(item[0][0])
+            colors.append(item[0][1]["color"])
+            pos[item[0][0]] = [np.random.rand(), item[1]]
+            keys.append(item[0][0])
+            x.append(item[1])
+    for key in keys:
         for node in conn[key]:
-            G.add_edge(key, node, weight=1)
+            if node in keys:
+                G.add_edge(key, node, weight=1)
     nx.draw(G, node_color=colors, pos=pos)
+    plt.show()
+
+    plt.hist(np.array(x), density=True, bins=20)
+    sns.kdeplot(x)
     plt.show()
