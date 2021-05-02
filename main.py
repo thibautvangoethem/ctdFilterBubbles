@@ -5,7 +5,7 @@ import matplotlib.colors as pltc
 
 import pandas as pd  # for convinience
 import seaborn as sns
-
+from gurobiDinges import Gurobi
 
 def read_data():
     connections = dict()
@@ -139,13 +139,31 @@ def get_inate_opinion(conn, key, op):
     opinion = mean * (len(other_mean) + 1)
     for item in other_mean:
         opinion -= item
-    opinion = (np.minimum(np.maximum(opinion, 0), 1) * 2) - 1
+    opinion = np.minimum(np.maximum(opinion, 0), 1)
     return opinion
 
 
 if __name__ == '__main__':
     conn, op = read_data()
-    plot_graph(conn, op)
-    temp = friedkin_johnson(conn, op)
+    adj_matrix = np.zeros([len(conn), len(conn)])
+    for i in conn:
+        for j in conn[i]:
+            adj_matrix[int(i)-1,int(j)-1]=1
 
-    plot_graph(conn, temp)
+    z = [np.mean(op[i]) for i in conn]
+    z = np.array(z)
+    L = np.diag(np.sum(adj_matrix, 0)) - adj_matrix
+    inate_op2 = (L + np.eye(len(conn))).dot(z)
+    inate_op2 = np.minimum(np.maximum(inate_op2, 0), 1)
+
+    inate_op = np.zeros([len(conn)])
+    for i in conn:
+        temp_op=get_inate_opinion(conn, i, op)
+        inate_op[int(i)-1]=temp_op
+    temp=Gurobi()
+    temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
+    # plot_graph(conn, op)
+    # temp = friedkin_johnson(conn, op)
+
+    #
+    # plot_graph(conn, temp)
