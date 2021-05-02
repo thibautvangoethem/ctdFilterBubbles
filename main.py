@@ -6,7 +6,8 @@ import matplotlib.colors as pltc
 import pandas as pd  # for convinience
 import seaborn as sns
 from gurobiDinges import Gurobi
-
+import csv
+import pickle
 def read_data():
     connections = dict()
     opinions = dict()
@@ -14,11 +15,11 @@ def read_data():
         for line in f.readlines():
             u, v = line.replace("\n", '').split("\t")
             if u not in connections:
-                connections[u] = []
+                connections[u] = set()
             if v not in connections:
-                connections[v] = []
-            connections[u].append(v)
-            connections[v].append(u)
+                connections[v] = set()
+            connections[u].add(v)
+            connections[v].add(u)
 
     with open("reddit_twitter_data/Twitter/twitter_opinion.txt", "r") as f:
         for line in f.readlines():
@@ -136,7 +137,7 @@ def friedkin_johnson(conn, op):
 def get_inate_opinion(conn, key, op):
     mean = np.mean(op[key])
     other_mean = [np.mean(op[tmp]) for tmp in conn[key]]
-    opinion = mean * (len(other_mean) + 1)
+    opinion = mean * (len(other_mean)+1)
     for item in other_mean:
         opinion -= item
     opinion = np.minimum(np.maximum(opinion, 0), 1)
@@ -144,13 +145,14 @@ def get_inate_opinion(conn, key, op):
 
 
 if __name__ == '__main__':
+
     conn, op = read_data()
     adj_matrix = np.zeros([len(conn), len(conn)])
     for i in conn:
         for j in conn[i]:
             adj_matrix[int(i)-1,int(j)-1]=1
 
-    z = [np.mean(op[i]) for i in conn]
+    z = [np.mean(op[str(i+1)]) for i in range(len(conn))]
     z = np.array(z)
     L = np.diag(np.sum(adj_matrix, 0)) - adj_matrix
     inate_op2 = (L + np.eye(len(conn))).dot(z)
@@ -161,9 +163,11 @@ if __name__ == '__main__':
         temp_op=get_inate_opinion(conn, i, op)
         inate_op[int(i)-1]=temp_op
     temp=Gurobi()
-    temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
+    # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
+    pls, disaggs, z, W=temp.am(adj_matrix,inate_op2, 0.1,reduce_pls=False, gam=0, max_iters=1)
     # plot_graph(conn, op)
     # temp = friedkin_johnson(conn, op)
 
     #
     # plot_graph(conn, temp)
+    pickle.dump([pls, disaggs, z, W],open('dump.dump','wb'))
