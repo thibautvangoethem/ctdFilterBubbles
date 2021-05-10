@@ -37,13 +37,13 @@ def read_data():
     original_con = copy.deepcopy(connections)
     original_opinions = copy.deepcopy(opinions)
     outside_actor = True
-    actors = 100
+    actors = 150
     if outside_actor:
-        average_connections = 20
+        average_connections = 50
         key = len(connections) + 1
         original_length = len(connections)
         for i in range(actors):
-            if i < 0.5 * actors:
+            if i < 100:
                 val = 0
             else:
                 val = 1
