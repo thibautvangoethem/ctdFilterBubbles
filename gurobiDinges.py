@@ -75,6 +75,18 @@ class Gurobi():
         n = L.shape[0]
         return solve(L + np.eye(n), s)
 
+    def min_z2(self, W, s, z):
+        D = np.diag(np.sum(W, 0))
+        n = D.shape[0]
+
+        p1 = D + np.eye(n)
+        p2 = np.matmul(W,z)+ s
+        result = solve(p1,p2)
+        length = len(result)
+        for i in range(1,101):
+            result[length-i] = s[length-i]
+        return result
+
     def am(self,A, s, lam, reduce_pls=False, gam=0, max_iters=100, existing=False):
         # alternating minimization
         W = np.copy(A)
