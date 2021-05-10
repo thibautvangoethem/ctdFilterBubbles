@@ -15,6 +15,7 @@ class Gurobi():
     def min_w_gurobi(self,z, lam, W0, reduce_pls, gam, existing):
         n = z.shape[0]
         m = Model("qcp")
+        m.Params.Threads = 4
 
         if existing:
             inds = [(i, j) for i in range(n) for j in range(n) if i > j and W0[i, j] > 0]

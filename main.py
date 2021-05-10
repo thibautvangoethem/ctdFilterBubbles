@@ -5,6 +5,7 @@ import matplotlib.colors as pltc
 
 import pandas as pd  # for convinience
 import seaborn as sns
+from scipy.linalg import solve
 from gurobiDinges import Gurobi
 import csv
 import pickle
@@ -84,10 +85,10 @@ def plot_graph(conn, op):
             average_conn = average_conn / (len(conn[item[0][0]]))
             average_conn_list.append(average_conn)
             diff_conn_list.append(diff_counter)
-    for key in keys:
-        for node in conn[key]:
-            if node in keys:
-                G.add_edge(key, node, weight=1)
+    # for key in keys:
+    #     for node in conn[key]:
+    #         if node in keys:
+    #             G.add_edge(key, node, weight=1)
     nx.draw(G, node_color=colors, pos=pos)
     plt.show()
 
@@ -119,13 +120,12 @@ def friedkin_johnson(conn, op):
     current_op = op
     new_op = dict()
     for i in range(10):
-        new_val = 0
         for key in conn:
+            new_val = 0
             own_opinion = get_inate_opinion(conn, key, op)
             new_val += own_opinion
-            w = 1.0 / (len(conn[key]) + 1.0)
             for connected in conn[key]:
-                connect_op = get_inate_opinion(conn, connected, current_op) * w
+                connect_op = get_inate_opinion(conn, connected, current_op)
                 new_val += connect_op
             new_val = new_val / (len(conn[key]) + 1.0)
             new_op[key] = new_val
@@ -133,7 +133,42 @@ def friedkin_johnson(conn, op):
         new_op = dict()
     return current_op
 
+def plot_graph2(opinions, adjacency):
+    G = nx.Graph()
+    colors = []
+    to_sort = []
+    for index, op in enumerate(opinions):
+        op=(op*2)-1
+        if op > 0:
+            to_sort.append(((index, {"color": pltc.to_hex([op, 0, 0])}), op))
+        else:
+            to_sort.append(((index, {"color": pltc.to_hex([0, 0, abs(op)])}), op))
 
+    to_sort.sort(key=lambda x: x[1])
+    pos = dict()
+    keys = []
+
+
+    for item in to_sort:
+        if np.random.rand() >= 0:
+            G.add_node(item[0][0])
+            colors.append(item[0][1]["color"])
+            pos[item[0][0]] = [np.random.rand(), item[1]]
+            keys.append(item[0][0])
+    G.add_node(len(to_sort)+1)
+    colors.append("#FF0000")
+    pos[len(to_sort)+1] = [np.random.rand(), 1]
+    G.add_node(len(to_sort)+2)
+    colors.append("#0000FF")
+    pos[len(to_sort)+2] = [np.random.rand(),-1]
+    rounded = np.round(adjacency,5)
+    t = np.nonzero(np.round(adjacency,5))
+    # for index in range(len(t[0])):
+    #         G.add_edge(t[0][index], t[1][index], weight=rounded[t[0][index], t[1][index]])
+    ax = plt.gca()
+    ax.set_title('Eps=0.4 opinion graph')
+    nx.draw(G, node_color=colors, pos=pos,ax=ax)
+    plt.show()
 def get_inate_opinion(conn, key, op):
     mean = np.mean(op[key])
     other_mean = [np.mean(op[tmp]) for tmp in conn[key]]
@@ -143,31 +178,80 @@ def get_inate_opinion(conn, key, op):
     opinion = np.minimum(np.maximum(opinion, 0), 1)
     return opinion
 
+def min_z2( W, s, z):
+    D = np.diag(np.sum(W, 0))
+    n = D.shape[0]
+
+    p1 = D + np.eye(n)
+    p2 = np.matmul(W, z) + s
+    return solve(p1, p2)
+
+def plot_disagreement_and_polarization(pls,dissag):
+    plt.plot([0.2,0.4,0.6,0.8,1.0], pls)
+    plt.title("polarization graph")
+    plt.xlabel("epsilon")
+    plt.ylabel("Percent change in polarization /100")
+    plt.show()
+
+    plt.plot([0.2, 0.4, 0.6, 0.8, 1.0], dissag)
+    plt.title("disagreement graph")
+    plt.xlabel("epsilon")
+    plt.ylabel("Percent change in disagreement")
+    plt.show()
+
 
 if __name__ == '__main__':
-
-    conn, op = read_data()
-    adj_matrix = np.zeros([len(conn), len(conn)])
-    for i in conn:
-        for j in conn[i]:
-            adj_matrix[int(i)-1,int(j)-1]=1
-
-    z = [np.mean(op[str(i+1)]) for i in range(len(conn))]
-    z = np.array(z)
-    L = np.diag(np.sum(adj_matrix, 0)) - adj_matrix
-    inate_op2 = (L + np.eye(len(conn))).dot(z)
-    inate_op2 = np.minimum(np.maximum(inate_op2, 0), 1)
-
-    inate_op = np.zeros([len(conn)])
-    for i in conn:
-        temp_op=get_inate_opinion(conn, i, op)
-        inate_op[int(i)-1]=temp_op
-    temp=Gurobi()
-    # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
-    pls, disaggs, z, W=temp.am(adj_matrix,inate_op2, 0.1,reduce_pls=False, gam=0, max_iters=1)
-    # plot_graph(conn, op)
-    # temp = friedkin_johnson(conn, op)
-
     #
-    # plot_graph(conn, temp)
-    pickle.dump([pls, disaggs, z, W],open('dump.dump','wb'))
+    # epsilons=[0.2,0.4,0.6,0.8,1.0]
+    epsilons = [0.4]
+    # conn, op = read_data()
+    # plot_graph(conn, op)
+    # adj_matrix = np.zeros([len(conn), len(conn)])
+    # inate_op = np.zeros([len(conn)])
+    # for i in conn:
+    #     temp_op=get_inate_opinion(conn, i, op)
+    #     inate_op[int(i)-1]=temp_op
+    # for i in conn:
+    #     for j in conn[i]:
+    #         adj_matrix[int(i)-1,int(j)-1]=1
+    # temp = min_z2(adj_matrix, inate_op,inate_op)
+    # plot_graph2(temp,adj_matrix)
+    # for idx,eps in enumerate(epsilons):
+    #     conn, op = read_data()
+    #     # plot_graph(conn, op)
+    #     # temp = friedkin_johnson(conn, op)
+    #     # plot_graph(conn, temp)
+    #     adj_matrix = np.zeros([len(conn), len(conn)])
+    #     for i in conn:
+    #         for j in conn[i]:
+    #             adj_matrix[int(i)-1,int(j)-1]=1
+    #
+    #     inate_op = np.zeros([len(conn)])
+    #     for i in conn:
+    #         temp_op=get_inate_opinion(conn, i, op)
+    #         inate_op[int(i)-1]=temp_op
+    #     temp=Gurobi()
+    #     # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
+    #     pls, disaggs, z, W=temp.am(adj_matrix,inate_op, eps,reduce_pls=True, gam=0.2, max_iters=7)
+    #
+    #     pickle.dump([pls, disaggs, z, W], open('multi_epsilon_run_with_fix_word'+str(idx)+'.dump', 'wb'))
+    # pls=list()
+    # dissag=list()
+    # for idx, eps in enumerate(epsilons):
+    #     test=pickle.load(open('multi_epsilon_run'+str(idx)+'.dump','rb'))
+    #     pls.append(test[0][-1]/test[0][0])
+    #     dissag.append(test[1][-1] / test[1][0])
+    # plot_disagreement_and_polarization(pls,dissag)
+
+    # pls = list()
+    # dissag = list()
+    # for idx, eps in enumerate(epsilons):
+    #     test = pickle.load(open('multi_epsilon_run_with_fix_word' + str(idx) + '.dump', 'rb'))
+    #     pls.append(test[0][-1] / test[0][0])
+    #     dissag.append(test[1][-1] / test[1][0])
+    # plot_disagreement_and_polarization(pls, dissag)
+    # # #
+    for idx, eps in enumerate(epsilons):
+        test=pickle.load(open('multi_epsilon_run'+str(idx)+'.dump','rb'))
+        plot_graph2(test[2],test[3])
+
