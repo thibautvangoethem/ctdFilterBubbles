@@ -12,6 +12,14 @@ from pprint import pprint
 import pickle
 import csv
 class Gurobi():
+    def min_z2(self,W, s, z):
+        D = np.diag(np.sum(W, 0))
+        n = D.shape[0]
+
+        p1 = D + np.eye(n)
+        p2 = np.matmul(W, z) + s
+        return solve(p1, p2)
+
     def min_w_gurobi(self,z, lam, W0, reduce_pls, gam, existing):
         n = z.shape[0]
         m = Model("qcp")
@@ -79,7 +87,7 @@ class Gurobi():
     def am(self,A, s, lam, reduce_pls=False, gam=0, max_iters=100, existing=False):
         # alternating minimization
         W = np.copy(A)
-        z = self.min_z(W, s)  # minimize z first
+        z = self.min_z2(W, s,s)  # minimize z first
 
         # polarization
         pls = [self.compute_pls(z)]
@@ -98,7 +106,7 @@ class Gurobi():
             Wnew = self.min_w_gurobi(z, lam, A, reduce_pls=reduce_pls, gam=gam, existing=existing)
 
             # minimize z
-            znew = self.min_z(Wnew, s)
+            znew = self.min_z(Wnew, s,z)
 
             # exit condition
             if np.maximum(np.linalg.norm(z - znew), np.linalg.norm(Wnew - W)) < 5e-1 or i > max_iters - 1:

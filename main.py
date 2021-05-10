@@ -216,25 +216,25 @@ if __name__ == '__main__':
     #         adj_matrix[int(i)-1,int(j)-1]=1
     # temp = min_z2(adj_matrix, inate_op,inate_op)
     # plot_graph2(temp,adj_matrix)
-    # for idx,eps in enumerate(epsilons):
-    #     conn, op = read_data()
-    #     # plot_graph(conn, op)
-    #     # temp = friedkin_johnson(conn, op)
-    #     # plot_graph(conn, temp)
-    #     adj_matrix = np.zeros([len(conn), len(conn)])
-    #     for i in conn:
-    #         for j in conn[i]:
-    #             adj_matrix[int(i)-1,int(j)-1]=1
-    #
-    #     inate_op = np.zeros([len(conn)])
-    #     for i in conn:
-    #         temp_op=get_inate_opinion(conn, i, op)
-    #         inate_op[int(i)-1]=temp_op
-    #     temp=Gurobi()
-    #     # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
-    #     pls, disaggs, z, W=temp.am(adj_matrix,inate_op, eps,reduce_pls=True, gam=0.2, max_iters=7)
-    #
-    #     pickle.dump([pls, disaggs, z, W], open('multi_epsilon_run_with_fix_word'+str(idx)+'.dump', 'wb'))
+    for idx,eps in enumerate(epsilons):
+        conn, op = read_data()
+        # plot_graph(conn, op)
+        # temp = friedkin_johnson(conn, op)
+        # plot_graph(conn, temp)
+        adj_matrix = np.zeros([len(conn), len(conn)])
+        for i in conn:
+            for j in conn[i]:
+                adj_matrix[int(i)-1,int(j)-1]=1
+
+        inate_op = np.zeros([len(conn)])
+        for i in conn:
+            temp_op=get_inate_opinion(conn, i, op)
+            inate_op[int(i)-1]=temp_op
+        temp=Gurobi()
+        # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
+        pls, disaggs, z, W=temp.am(adj_matrix,inate_op, eps,reduce_pls=True, gam=0.2, max_iters=7)
+
+        pickle.dump([pls, disaggs, z, W], open('multi_epsilon_run_with_fix_word_z2_'+str(idx)+'.dump', 'wb'))
     # pls=list()
     # dissag=list()
     # for idx, eps in enumerate(epsilons):
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     #     dissag.append(test[1][-1] / test[1][0])
     # plot_disagreement_and_polarization(pls, dissag)
     # # #
-    for idx, eps in enumerate(epsilons):
-        test=pickle.load(open('multi_epsilon_run'+str(idx)+'.dump','rb'))
-        plot_graph2(test[2],test[3])
+    # for idx, eps in enumerate(epsilons):
+    #     test=pickle.load(open('multi_epsilon_run'+str(idx)+'.dump','rb'))
+    #     plot_graph2(test[2],test[3])
 
