@@ -46,7 +46,6 @@ def read_data():
         for i in range(actors):
             if i < (actors * 0.7):
                 val = 0
-                print("?")
             else:
                 val = 1
             opinions[str(key)] = [val]
@@ -215,6 +214,7 @@ def plot_graph2(opinions, adjacency):
 
     for item in to_sort:
         if np.random.rand() >= 0:
+
             G.add_node(item[0][0])
             colors.append(item[0][1]["color"])
             pos[item[0][0]] = [np.random.rand(), item[1]]
@@ -242,7 +242,6 @@ if __name__ == '__main__':
 
     inate_op = np.zeros([len(conn)])
     for i in range(len(conn)):
-        print(i)
         temp_op=get_inate_opinion(conn, i+1, op)
         inate_op[int(i)]=temp_op
     temp=Gurobi()
@@ -267,10 +266,10 @@ if __name__ == '__main__':
     plot_graph2(op, adj_matrix)
 
     # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
-    pls, disaggs, z, W=temp.am(adj_matrix,inate_op, 0.6,reduce_pls=True, gam=0.2, max_iters=3)
+    # pls, disaggs, z, W=temp.am(adj_matrix,inate_op, 0.6,reduce_pls=True, gam=0.2, max_iters=3)
 
 
-    pickle.dump([pls, disaggs, z, W],open('dump_no_friedkin.dump','wb'))
+    # pickle.dump([pls, disaggs, z, W],open('dump_no_friedkin.dump','wb'))
 
     # sys.stdout = old_stdout
     # log_file.close()
