@@ -37,14 +37,16 @@ def read_data():
     original_con = copy.deepcopy(connections)
     original_opinions = copy.deepcopy(opinions)
     outside_actor = True
-    actors = 150
+    actors = 300
+
     if outside_actor:
         average_connections = 50
         key = len(connections) + 1
         original_length = len(connections)
         for i in range(actors):
-            if i < 100:
+            if i < (actors * 0.7):
                 val = 0
+                print("?")
             else:
                 val = 1
             opinions[str(key)] = [val]
@@ -186,7 +188,7 @@ def get_inate_opinion(conn, key, op):
     if mean == 0.0 or mean == 1.0:
         opinion = mean * 2 - 1
     else:
-        other_mean = [np.mean(op[tmp]) for tmp in conn[str(key)]]
+        other_mean = [np.mean(op[tmp]) for tmp in conn[str(key)] if int(tmp) <= 548]
         opinion = mean * (len(other_mean)+1)
         for item in other_mean:
             opinion -= item
@@ -240,6 +242,7 @@ if __name__ == '__main__':
 
     inate_op = np.zeros([len(conn)])
     for i in range(len(conn)):
+        print(i)
         temp_op=get_inate_opinion(conn, i+1, op)
         inate_op[int(i)]=temp_op
     temp=Gurobi()

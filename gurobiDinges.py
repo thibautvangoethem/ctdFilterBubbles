@@ -83,7 +83,7 @@ class Gurobi():
         p2 = np.matmul(W,z)+ s
         result = solve(p1,p2)
         length = len(result)
-        for i in range(1,101):
+        for i in range(1,301):
             result[length-i] = s[length-i]
         return result
 
