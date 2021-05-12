@@ -36,10 +36,10 @@ def read_data():
             opinions[u].append(float(w))
     original_con = copy.deepcopy(connections)
     original_opinions = copy.deepcopy(opinions)
-    outside_actor = True
-    actors = 150
+    outside_actor = False
+    actors = 50
     if outside_actor:
-        average_connections = 50
+        average_connections = 25
         key = len(connections) + 1
         original_length = len(connections)
         for i in range(actors):
@@ -53,6 +53,7 @@ def read_data():
             while len(new_connections) < average_connections:
                 random = np.random.randint(1, original_length+1)
                 if random not in new_connections and random != 0:
+                    temp = get_inate_opinion(original_con, str(random), original_opinions)
                     if get_inate_opinion(original_con, str(random), original_opinions) < 0 and val == 0:
                         new_connections.append(random)
                         if str(key) not in connections:
@@ -60,12 +61,15 @@ def read_data():
                         connections[str(key)].add(str(random))
                         connections[str(random)].add(str(key))
 
+                        temp2=get_inate_opinion(connections,str(random),opinions)
                     if get_inate_opinion(original_con, str(random), original_opinions) >= 0 and val == 1:
                         new_connections.append(random)
                         if str(key) not in connections:
                             connections[str(key)] = set()
                         connections[str(key)].add(str(random))
                         connections[str(random)].add(str(key))
+                        temp2 = get_inate_opinion(connections, str(random), opinions)
+
 
             key += 1
 
@@ -183,14 +187,14 @@ def friedkin_johnson(conn, op):
 
 def get_inate_opinion(conn, key, op):
     mean = np.mean(op[str(key)])
-    if mean == 0.0 or mean == 1.0:
-        opinion = mean * 2 - 1
-    else:
-        other_mean = [np.mean(op[tmp]) for tmp in conn[str(key)]]
-        opinion = mean * (len(other_mean)+1)
-        for item in other_mean:
-            opinion -= item
-        opinion = np.minimum(np.maximum(opinion, 0), 1) *2 -1
+    # if mean == 0.0 or mean == 1.0:
+    #     opinion = mean * 2 - 1
+    # else:
+    other_mean = [np.mean(op[tmp]) for tmp in conn[str(key)]]
+    opinion = mean * (len(other_mean)+1)
+    for item in other_mean:
+        opinion -= item
+    opinion = np.minimum(np.maximum(opinion, 0), 1)
     return opinion
 
 
@@ -213,6 +217,7 @@ def plot_graph2(opinions, adjacency):
 
     for item in to_sort:
         if np.random.rand() >= 0:
+
             G.add_node(item[0][0])
             colors.append(item[0][1]["color"])
             pos[item[0][0]] = [np.random.rand(), item[1]]
@@ -242,32 +247,40 @@ if __name__ == '__main__':
     for i in range(len(conn)):
         temp_op=get_inate_opinion(conn, i+1, op)
         inate_op[int(i)]=temp_op
-    temp=Gurobi()
 
-    op = temp.min_z2(adj_matrix, inate_op, inate_op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
-    op = temp.min_z2(adj_matrix, inate_op, op)
+    z = [np.mean(op[str(i+1)]) for i in range(len(op))]
+    z = np.array(z)
+
+    L = np.diag(np.sum(adj_matrix, 0)) - adj_matrix
+    s = (L).dot(z)
+    s = np.minimum(np.maximum(s, 0), 1)
+    # temp=Gurobi()
+
+
+    # op = temp.min_z2(adj_matrix, inate_op, inate_op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
+    # op = temp.min_z2(adj_matrix, inate_op, op)
 
     plot_graph2(op, adj_matrix)
 
     # temp.min_w_gurobi(op,0.2,conn,gam=0,existing=False,reduce_pls=False)
-    pls, disaggs, z, W=temp.am(adj_matrix,inate_op, 0.6,reduce_pls=True, gam=0.2, max_iters=3)
+    # pls, disaggs, z, W=temp.am(adj_matrix,inate_op, 0.6,reduce_pls=True, gam=0.2, max_iters=3)
 
 
-    pickle.dump([pls, disaggs, z, W],open('dump_no_friedkin.dump','wb'))
+    # pickle.dump([pls, disaggs, z, W],open('dump_no_friedkin.dump','wb'))
 
     # sys.stdout = old_stdout
     # log_file.close()
