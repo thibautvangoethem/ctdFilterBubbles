@@ -46,7 +46,9 @@ class Gurobi():
         print('added first constraint')
 
         # add constraint \sum_{i,j} (wij - w0ij) < lam*norm(w0)**2
-        rhs = (lam * np.linalg.norm(W0)) ** 2
+        t1=np.linalg.norm(W0)
+        t2=lam
+        rhs = (t1 * t2) ** 2
 
         if existing:
             m.addQConstr(quicksum(
@@ -70,10 +72,15 @@ class Gurobi():
         return W
 
     def min_z(self,W, s):
+        # subset_s=s[0:]
         D = np.diag(np.sum(W, 0))
         L = D - W
         n = L.shape[0]
-        return solve(L + np.eye(n), s)
+        temp=solve(L + np.eye(n), s)
+        length=len(temp)
+        for i in range(1, 51):
+            temp[length - i] = s[length - i]
+        return temp
 
     def min_z2(self, W, s, z):
         D = np.diag(np.sum(W, 0))
