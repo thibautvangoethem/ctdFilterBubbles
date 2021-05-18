@@ -234,42 +234,58 @@ if __name__ == '__main__':
     # log_file = open("message.log", "w")
     # sys.stdout = log_file
     #
-    epsilon=[0.2,0.4,0.6,0.8,1.0]
-    for idx,i in enumerate(epsilon):
-        conn, op = read_data()
+    #
+    epsilon=[0.4]
+    # g=Gurobi()
+    # conn, op = read_data()
+    # plot_graph(conn, op)
+    # adj_matrix = np.zeros([len(conn), len(conn)])
+    # inate_op = np.zeros([len(conn)])
+    # for i in conn:
+    #     temp_op=get_inate_opinion(conn, i, op)
+    #     inate_op[int(i)-1]=temp_op
+    # for i in conn:
+    #     for j in conn[i]:
+    #         adj_matrix[int(i)-1,int(j)-1]=1
+    # temp = g.min_z(adj_matrix,inate_op)
+    #
+    # plot_graph2(temp,adj_matrix)
 
-        # plot_graph(conn,op)
-
-        adj_matrix = np.zeros([len(conn), len(conn)])
-        for i in conn:
-            for j in conn[i]:
-                adj_matrix[int(i)-1,int(j)-1]=1
-
-
-        inate_op = np.zeros([len(conn)])
-        for i in range(len(conn)):
-            temp_op=get_inate_opinion(conn, i+1, op)
-            inate_op[int(i)]=temp_op
-        temp=Gurobi()
-
-
-        op = temp.min_z2(adj_matrix, inate_op, inate_op)
-        for i in range(50):
-            op = temp.min_z2(adj_matrix, inate_op, op)
-
-
-
-        plot_graph2(op, adj_matrix)
-
-        # temp.min_w_gurobi(op,0.4,conn,gam=0,existing=False,reduce_pl
-        # s=False)
-        pls, disaggs, z, W=temp.am(adj_matrix,inate_op, i,reduce_pls=False, gam=0.0, max_iters=7)
-        #
-        #
-        pickle.dump([pls, disaggs, z, W],open('dump_external_no_regularization_'+str(idx)+'.dump','wb'))
-    # for idx, i in enumerate(epsilon):
-    #     dinges=pickle.load(open('dump_external_no_regularization_'+str(idx)+'.dump', 'rb'))
-    #     plot_graph2(dinges[2], dinges[3])
+    # for idx,i in enumerate(epsilon):
+    #     conn, op = read_data()
+    #
+    #     # plot_graph(conn,op)
+    #
+    #     adj_matrix = np.zeros([len(conn), len(conn)])
+    #     for i in conn:
+    #         for j in conn[i]:
+    #             adj_matrix[int(i)-1,int(j)-1]=1
+    #
+    #
+    #     inate_op = np.zeros([len(conn)])
+    #     for i in range(len(conn)):
+    #         temp_op=get_inate_opinion(conn, i+1, op)
+    #         inate_op[int(i)]=temp_op
+    #     temp=Gurobi()
+    #
+    #
+    #     op = temp.min_z2(adj_matrix, inate_op, inate_op)
+    #     for i in range(50):
+    #         op = temp.min_z2(adj_matrix, inate_op, op)
+    #
+    #
+    #
+    #     plot_graph2(op, adj_matrix)
+    #
+    #     # temp.min_w_gurobi(op,0.4,conn,gam=0,existing=False,reduce_pl
+    #     # s=False)
+    #     pls, disaggs, z, W=temp.am(adj_matrix,inate_op, i,reduce_pls=False, gam=0.0, max_iters=7)
+    #     #
+    #     #
+    #     pickle.dump([pls, disaggs, z, W],open('dump_external_with_regularization_aaaaa_'+str(idx)+'.dump','wb'))
+    for idx, i in enumerate(epsilon):
+        dinges=pickle.load(open('dump_external_with_regularization_aaaaa_'+str(idx)+'.dump', 'rb'))
+        plot_graph2(dinges[2], dinges[3])
 
     # dinges = pickle.load(open('dump_external2.dump', 'rb'))
     # plot_graph2(dinges[2], dinges[3])

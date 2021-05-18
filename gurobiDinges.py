@@ -77,9 +77,9 @@ class Gurobi():
         L = D - W
         n = L.shape[0]
         temp=solve(L + np.eye(n), s)
-        length=len(temp)
-        for i in range(1, 51):
-            temp[length - i] = s[length - i]
+        # length=len(temp)
+        # for i in range(1, 101):
+        #     temp[length - i] = s[length - i]
         return temp
 
     def min_z2(self, W, s, z):
